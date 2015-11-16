@@ -1,0 +1,50 @@
+{
+    "variables": {
+        "aws_access_key": "AWS_ACCESS_KEY",
+        "aws_secret_key": "AWS_SECRET_KEY"
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "region": "us-east-1",
+            "source_ami": "AMI_ID",
+            "instance_type": "t2.micro",
+            "ssh_username": "root",
+            "ami_name": "NEW_AMI_NAME_{{timestamp}}",
+            "vpc_id": "VPC_ID",
+            "subnet_id": "SUBNET_ID",
+            "associate_public_ip_address": true
+        }
+    ],
+    "_comment": "At first you want the shell to sleep for sometime, so that SSH is available",
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sleep 30"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "yum install -y epel-release",
+                "yum install -y ansible"
+            ]
+        },
+        {
+            "type": "ansible-local",
+            "playbook_file": "./base_ami/base.yml",
+            "playbook_dir": "./base_ami"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo Clean up..",
+                "rm -rf /root/.ssh/authorized_keys",
+                "bash -c '> /etc/resolv.conf'"
+            ]
+        }
+    ]
+}
