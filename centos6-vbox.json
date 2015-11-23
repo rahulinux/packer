@@ -1,0 +1,48 @@
+{
+    "builders": [
+        {
+               "type": "virtualbox-iso",
+               "guest_os_type": "RedHat_64",
+               "iso_url": "file:///opt/ISO/CentOS-6.4-x86_64-bin-DVD1.iso",
+               "iso_checksum": "0128cfc7c86072b13ee80dd013e0e5d7",
+               "iso_checksum_type": "md5",
+               "ssh_username": "packer",
+               "ssh_password": "packer",
+               "ssh_pty": "true",
+               "headless": "true",
+               "disk_size": 8192,
+               "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+               "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
+               "floppy_files": [ "ks.cfg" ],
+                "boot_command": [
+                  "<tab> text ks=floppy:/ks.cfg<enter><wait>"
+                ],
+                "boot_wait": "5s"
+        }
+    ],
+    "_comment": "At first you want the shell to sleep for sometime, so that SSH is available",
+    "provisioners": [
+      {
+        "type": "shell-local",
+        "command":  "curl -k https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub > scripts/vagrant.pub"
+      },
+      {
+         "type": "file",
+         "source": "scripts/vagrant.pub",
+         "destination": "/tmp/ssh_key"
+      },
+      {
+        "type": "shell",
+         "execute_command": "echo 'packer' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+        "scripts": [
+          "scripts/setup.sh"
+        ]
+      }
+    ],
+    "post-processors": [
+    {
+      "output": "builds/{{.Provider}}-centos6.box",
+      "type": "vagrant"
+    }
+  ]
+}
