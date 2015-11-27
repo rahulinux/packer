@@ -4,6 +4,10 @@
                "type": "virtualbox-iso",
                "guest_os_type": "RedHat_64",
                "iso_url": "file:///opt/ISO/CentOS-6.4-x86_64-bin-DVD1.iso",
+              "vboxmanage": [
+                      ["modifyvm", "{{.Name}}", "--natdnshostresolver1", "on"],
+                      ["modifyvm", "{{.Name}}", "--natdnsproxy1", "on"]
+                ],
                "iso_checksum": "0128cfc7c86072b13ee80dd013e0e5d7",
                "iso_checksum_type": "md5",
                "ssh_username": "packer",
@@ -33,7 +37,7 @@
       },
       {
         "type": "shell",
-         "execute_command": "echo 'packer' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+        "execute_command": "echo 'packer' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
         "scripts": [
           "scripts/setup.sh"
         ]
