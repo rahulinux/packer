@@ -1,0 +1,58 @@
+{
+    "builders": [
+        {
+               "type": "virtualbox-iso",
+               "guest_os_type": "RedHat_64",
+               "iso_url": "file:///Users/rahulpatil/Downloads/CentOS-7-x86_64-Minimal-1708.iso",
+              "vboxmanage": [
+                      ["modifyvm", "{{.Name}}", "--natdnshostresolver1", "on"],
+                      ["modifyvm", "{{.Name}}", "--natdnsproxy1", "on"],
+                      ["modifyvm", "{{.Name}}", "--memory", "3048"],
+                      ["modifyvm", "{{.Name}}", "--cpus", "2"]
+                ],
+               "iso_checksum": "5848f2fd31c7acf3811ad88eaca6f4aa",
+               "iso_checksum_type": "md5",
+               "ssh_username": "vagrant",
+               "ssh_password": "vagrant",
+               "ssh_pty": "true",
+               "headless": "true",
+               "disk_size": 8192,
+               "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+               "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
+               "http_directory": ".",
+               "boot_command": [
+                 "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter>"
+                ],
+               "boot_wait": "5s"
+        }
+    ],
+    "_comment": "At first you want the shell to sleep for sometime, so that SSH is available",
+    "provisioners": [
+      {
+        "type": "shell",
+        "execute_command": "echo 'vagrant' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+        "scripts": [
+          "provisioners/scripts/setup.sh"
+        ]
+      },
+      {
+        "type": "ansible-local",
+        "playbook_dir": "provisioners/ansible",
+        "playbook_file": "provisioners/ansible/site.yml",
+        "extra_arguments": [ "-vvv"]
+      },
+      {
+        "type": "shell",
+        "execute_command": "echo 'vagrant' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+        "scripts": [
+          "provisioners/scripts/cleanup.sh"
+        ]
+      }
+    ],
+    "post-processors": [
+    {
+      "output": "builds/{{.Provider}}-centos7.box",
+      "type": "vagrant"
+    }
+  ]
+}
