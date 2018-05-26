@@ -1,0 +1,43 @@
+---
+
+- name: Install epel-relase 
+  yum: 
+    name: epel-release
+  when: "{{is_centos}}"
+
+- name: Install require packages 
+  yum: 
+    name: "{{ item }}" 
+    state: present
+  when: "{{is_centos}}"
+  with_items:
+      - "{{ centos_pkgs }}"
+      - "{{ common_pkgs }}"
+
+- name: Install require packages 
+  apk: 
+    name: "{{ item }}" 
+    state: present
+  when: "{{is_ubuntu}}"
+  with_items:
+      - "{{ ubuntu_pkgs }}"
+      - "{{ common_pkgs }}"
+
+- name: Creating Deploy user 
+  user:
+      name: "{{ deployer_user }}"
+      home: "{{ deployer_home }}"
+      createhome: yes
+      state: present
+
+- name: Allow deploy users to specific actions using sudo 
+  lineinfile:
+    dest: /etc/sudoers.d/deployer
+    state: present
+    mode: 0440
+    regexp: '^{{ deployer_user }}'
+    line: '{{ deployer_user }} ALL=(ALL) NOPASSWD: {{ allowed_cmds }}'
+    validate: 'visudo -cf %s'
+    create: yes
+
+- include_tasks: os_hardening.yml

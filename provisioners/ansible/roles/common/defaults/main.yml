@@ -1,0 +1,20 @@
+is_ubuntu: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian' 
+is_centos: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+os: "'$ansible_distribution'"
+
+# List of packages
+common_pkgs: [ curl, git, ansible, python-pip  ]
+centos_pkgs: [ python-devel ]
+ubuntu_pkgs: [ git-core, python-dev ]
+
+# OS hardening related variables
+sshd_config: '/etc/ssh/sshd_config'
+
+# specify admin commands seperated by comma
+allowed_cmds: "/bin/systemctl"
+
+# deploy user name 
+deployer_user: "deploy"
+
+# deploy user home
+deployer_home: "/opt/apps"

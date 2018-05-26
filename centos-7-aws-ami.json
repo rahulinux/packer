@@ -1,0 +1,65 @@
+{
+    "min_packer_version": "0.11.0",
+    "variables": {
+        "aws_access_key": "AWS_ACCESS_KEY",
+        "aws_secret_key": "AWS_SECRET_KEY"
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "region": "{{ user `aws_region` }}",
+            "source_ami_filter": {
+                "filters": {
+                    "owner-alias": "aws-marketplace",
+                    "product-code": "aw0evgkw8e5c1q413zgy5pjce",
+                    "virtualization-type": "hvm"
+                },
+                "most_recent": true
+            },
+            "ami_virtualization_type": "hvm",
+            "instance_type": "t2.micro",
+            "ssh_username": "centos",
+            "ami_name": "centos_7_{{timestamp}}",
+            "ami_description": "CentOS Linux 7 x86_64 HVM EBS",
+            "associate_public_ip_address": true,
+            "tags": {
+                "Name": "centos-7-docker",
+                "OS": "CentOS",
+                "APP": "Docker"
+            }
+        }
+    ],
+    "_comment": "At first you want the shell to sleep for sometime, so that SSH is available",
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sleep 30"
+            ]
+        },
+        {
+            "type": "shell",
+            "execute_command": "echo 'centos' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+            "inline": [
+                "yum install -y ansible"
+            ]
+        },
+        {
+            "type": "ansible-local",
+            "playbook_dir": "provisioners/ansible",
+            "playbook_file": "provisioners/ansible/site.yml",
+            "extra_arguments": [ "-vvv"]
+        },
+        {
+            "type": "shell",
+            "execute_command": "echo 'centos' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+            "inline": [
+                "echo Clean up..",
+                "rm -rf /root/.ssh/authorized_keys",
+                "bash -c '> /etc/resolv.conf'"
+            ]
+        }
+    ]
+}
